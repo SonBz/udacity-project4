@@ -7,7 +7,31 @@ plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
 
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+    packagerOptions:
+      scripts:
+        - rm -rf node_modules/aws-sdk
+
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: ToDos API
+        description: serverless api for ToDo application
+    models:
+      - name: CreateTodo
+        contentType: application/json
+        schema: ${file(models/create-todo-model.json)}
+      - name: UpdateTodo
+        contentType: application/json
+        schema: ${file(models/update-todo-model.json)}
+        
 provider:
   name: aws
   runtime: nodejs12.x
@@ -83,6 +107,12 @@ functions:
           request:
             schemas:
               application/json: ${file(models/create-todo-model.json)}
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create todo task
+            description: Create a new todo item
+            requestModels:
+              'application/json': CreateTodo
     iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
@@ -105,6 +135,12 @@ functions:
           method: patch
           path: todos/{todoId}
           cors: true
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: update todo task
+            description: update a new todo item
+            requestModels:
+              'application/json': UpdateTodo
     iamRoleStatementsInherit: true
     iamRoleStatements:
       - Effect: Allow
